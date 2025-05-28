@@ -13,7 +13,7 @@ const fundButton = document.getElementById("fundButton");
 const balanceButton = document.getElementById("balanceButton");
 const ethAmountInput = document.getElementById("ethAmount");
 const withdrawButtonInput = document.getElementById("withdrawButton");
-const donationsButton = document.getElementById("donationsButton");
+const getFundButton = document.getElementById("getFund");
 
 let walletClient;
 let publicClient;
@@ -22,7 +22,43 @@ connectButton.onclick = connectWallet;
 fundButton.onclick = sendFund;
 balanceButton.onclick = getBalance;
 withdrawButtonInput.onclick = withdraw;
-donationsButton.onclick = getFund;
+getFundButton.onclick = getFund;
+
+
+async function getFund(){
+    if(typeof window.ethereum !== "undefined"){
+        try{
+            publicClient = createPublicClient({
+                transport: custom(window.ethereum)
+            })
+
+            walletClient = createWalletClient({
+                transport: custom(window.ethereum)
+            });
+
+            const [connectedAddress] = await walletClient.requestAddresses();
+            // console.log(connectedAddress);
+            const abi = coffeeabi;
+            // console.log(abi);
+            const functionName = "getAddressToAmountFunded";
+            
+            const data = await publicClient.readContract({
+                address: contractAddress,
+                abi,
+                functionName,
+                args: [connectedAddress]
+            })
+
+            console.log(`The fund in account ${connectedAddress} is:${data}`);
+            
+        }catch(error){
+            console.error("Get Fund Failed:", error);
+            alert(`Get Fund Failed: ${error.message || error}`);
+        }
+    }else{
+        connectButton.innerHTML = "PLease Install Metamask";
+    }
+}
 
 async function connectWallet() {
     // If metamask exist, connect
